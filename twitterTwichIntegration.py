@@ -1,6 +1,7 @@
 from twitchAPI.twitch import Twitch
 import configparser
 import json
+import twitter
 
 def main():
     twitchChannelInfo = None
@@ -13,8 +14,12 @@ def main():
     streamGame = twitchChannelInfoObject['game_name']
     streamTitle = twitchChannelInfoObject['title']
     streamUser = twitchChannelInfoObject['broadcaster_name']
-    tweetToSend = "I am live plaing %s where I am %s over at twitch.tv/%s" % (streamGame, streamTitle, streamUser)
-    print(tweetToSend)
+    tweetToSend = "I am live %s in %s come check it out twitch.tv/%s" % (streamTitle, streamGame, streamUser)
+    try:
+        sendTweet(tweetToSend)
+    except Exception as ex:
+        print("Error Sending Tweet")
+        return
 
 def getConfigInformationAsString(section,value):
     config = configparser.ConfigParser()
@@ -32,6 +37,15 @@ def getTwitchInformation():
     twitch = Twitch(twitchAppId, twitchAppSecret)
     twitch.authenticate_app([])
     return twitch.get_channel_information(broadcasterId)
+
+def sendTweet(tweetToSend):
+    consumerKey = getConfigInformationAsString("TwitterAPI","TwitterConsumerAPIKey")
+    consumerSecret = getConfigInformationAsString("TwitterAPI", "TwitterConsumerSecretKey")
+    accessTokenKey = getConfigInformationAsString("TwitterAPI", "TwitterAccessToken")
+    accessTokenSecret = getConfigInformationAsString("TwitterAPI", "TwitterAccessTokenSecret")
+    api = twitter.Api(consumer_key=consumerKey,consumer_secret=consumerSecret,access_token_key=accessTokenKey,access_token_secret=accessTokenSecret)
+    status = api.PostUpdate(tweetToSend)
+
 
 if __name__ == "__main__":
     main()
